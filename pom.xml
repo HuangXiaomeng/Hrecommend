@@ -10,6 +10,7 @@
 	
 	<modules>
     <module>hadoop-recommend</module>
+    <module>mahout-recommend</module>
   </modules>
 	
 </project>
