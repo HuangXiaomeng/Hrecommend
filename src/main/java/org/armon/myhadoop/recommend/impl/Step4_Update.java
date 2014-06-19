@@ -123,7 +123,7 @@ public class Step4_Update extends AbstractStep {
     String input2 = path.get("Step5Input2");
     String output = path.get("Step5Output");
 
-    HdfsDAO hdfs = new HdfsDAO(Recommend.HDFS, conf);
+    HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(output);
 
     Job job = new Job(conf);

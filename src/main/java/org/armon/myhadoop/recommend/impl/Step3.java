@@ -50,7 +50,7 @@ public class Step3 extends AbstractStep {
     String input = path.get("Step3Input");
     String output = path.get("Step3Output");
 
-    HdfsDAO hdfs = new HdfsDAO(Recommend.HDFS, conf);
+    HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(output);
     
     Job job = new Job(conf);

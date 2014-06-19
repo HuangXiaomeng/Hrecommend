@@ -6,9 +6,9 @@ public class myHaoopUtil {
   
   public static Configuration getConf() {
     Configuration conf = new Configuration();
-    conf.addResource("classpath:/hadoop/core-site.xml");
-    conf.addResource("classpath:/hadoop/hdfs-site.xml");
-    conf.addResource("classpath:/hadoop/mapred-site.xml");
+    conf.addResource("hadoop/core-site.xml");
+    conf.addResource("hadoop/hdfs-site.xml");
+//    conf.addResource("hadoop/mapred-site.xml");
     return conf;
   }
   

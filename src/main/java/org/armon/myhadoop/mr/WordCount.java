@@ -1,99 +1,86 @@
 package org.armon.myhadoop.mr;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.StringTokenizer;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.FileOutputFormat;
-import org.apache.hadoop.mapred.JobClient;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.MapReduceBase;
-import org.apache.hadoop.mapred.Mapper;
-import org.apache.hadoop.mapred.OutputCollector;
-import org.apache.hadoop.mapred.Reducer;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.TextInputFormat;
-import org.apache.hadoop.mapred.TextOutputFormat;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
-import org.armon.myhadoop.recommend.impl.Recommend;
+import org.armon.myhadoop.util.myHaoopUtil;
 
 public class WordCount {
 
-  public static class WordCountMapper extends MapReduceBase implements
+  public static class WordCountMapper extends
       Mapper<Object, Text, Text, IntWritable> {
     private final static IntWritable one = new IntWritable(1);
     private Text word = new Text();
 
     @Override
-    public void map(Object key, Text value,
-        OutputCollector<Text, IntWritable> output, Reporter reporter)
-        throws IOException {
+    public void map(Object key, Text value, Context context)
+        throws IOException, InterruptedException {
       StringTokenizer itr = new StringTokenizer(value.toString());
       while (itr.hasMoreTokens()) {
         word.set(itr.nextToken());
-        output.collect(word, one);
+        context.write(word, one);
       }
-
     }
   }
 
-  public static class WordCountReducer extends MapReduceBase implements
+  public static class WordCountReducer extends
       Reducer<Text, IntWritable, Text, IntWritable> {
     private IntWritable result = new IntWritable();
 
     @Override
-    public void reduce(Text key, Iterator<IntWritable> values,
-        OutputCollector<Text, IntWritable> output, Reporter reporter)
-        throws IOException {
+    public void reduce(Text key, Iterable<IntWritable> values, Context context)
+        throws IOException, InterruptedException {
       int sum = 0;
-      while (values.hasNext()) {
-        sum += values.next().get();
+      for (IntWritable i : values) {
+        sum += i.get();
       }
       result.set(sum);
-      output.collect(key, result);
+      context.write(key, result);
     }
-  }
-
-  public static JobConf getJobConf() {
-    JobConf conf = new JobConf(WordCount.class);
-    conf.setJobName("WordCount");
-    conf.addResource("classpath:/hadoop/core-site.xml");
-    conf.addResource("classpath:/hadoop/hdfs-site.xml");
-    conf.addResource("classpath:/hadoop/mapred-site.xml");
-    return conf;
   }
 
   public static void main(String[] args) throws Exception {
     String input = "hdfs://localhost:9000/user/hdfs/wordcount";
     String output = "hdfs://localhost:9000/user/hdfs/wordcount/result";
     
-    JobConf conf = getJobConf();
-    HdfsDAO hdfs = new HdfsDAO(Recommend.HDFS, conf);
+    Configuration conf = myHaoopUtil.getConf();
+    HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(input);
     hdfs.rmr(output);
     hdfs.mkdirs(input);
     hdfs.copyFile("testdata/wordcount/word.text", input);
 
-    conf.setOutputKeyClass(Text.class);
-    conf.setOutputValueClass(IntWritable.class);
-
-    conf.setMapperClass(WordCountMapper.class);
-    conf.setCombinerClass(WordCountReducer.class);
-    conf.setReducerClass(WordCountReducer.class);
-
-    conf.setInputFormat(TextInputFormat.class);
-    conf.setOutputFormat(TextOutputFormat.class);
-
-    FileInputFormat.setInputPaths(conf, new Path(input));
-    FileOutputFormat.setOutputPath(conf, new Path(output));
-
-    JobClient.runJob(conf);
+    Job job = new Job(conf);
+    job.setJarByClass(WordCount.class);
     
-    hdfs.cat(output + "/part-00000");
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(IntWritable.class);
+
+    job.setMapperClass(WordCountMapper.class);
+    job.setCombinerClass(WordCountReducer.class);
+    job.setReducerClass(WordCountReducer.class);
+
+    job.setInputFormatClass(TextInputFormat.class);
+    job.setOutputFormatClass(TextOutputFormat.class);
+
+    FileInputFormat.setInputPaths(job, new Path(input));
+    FileOutputFormat.setOutputPath(job, new Path(output));
+
+    job.waitForCompletion(true);
+    
+    hdfs.cat(output + "/part-r-00000");
     
     System.out.println("wordcount finish!");
     System.exit(0);

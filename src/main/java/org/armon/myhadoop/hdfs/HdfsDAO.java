@@ -12,23 +12,21 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.mapred.JobConf;
 
 public class HdfsDAO {
-
-  private static final String HDFS = "hdfs://localhost:9000/";
+  
+  private String hdfsPath;
+  private Configuration conf;
 
   public HdfsDAO(Configuration conf) {
-    this(HDFS, conf);
+    this.conf = conf;
+    hdfsPath = conf.get("fs.default.name");
   }
 
   public HdfsDAO(String hdfs, Configuration conf) {
     this.hdfsPath = hdfs;
     this.conf = conf;
   }
-
-  private String hdfsPath;
-  private Configuration conf;
 
   public void mkdirs(String folder) throws IOException {
     Path path = new Path(folder);

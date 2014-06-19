@@ -60,7 +60,7 @@ public class Step1 extends AbstractStep {
     String input = path.get("Step1Input");
     String output = path.get("Step1Output");
 
-    HdfsDAO hdfs = new HdfsDAO(Recommend.HDFS, conf);
+    HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(output);
     hdfs.rmr(input);
     hdfs.mkdirs(input);
