@@ -1,23 +1,21 @@
 package org.armon.myhadoop.util;
 
-import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.conf.Configuration;
 
 public class myHaoopUtil {
   
-  public static JobConf getJobConf(String className) throws ClassNotFoundException {
-    Class<?> clazz = Class.forName(className);
-    JobConf conf = new JobConf(clazz);
-    conf.setJobName(clazz.getSimpleName());
+  public static Configuration getConf() {
+    Configuration conf = new Configuration();
     conf.addResource("classpath:/hadoop/core-site.xml");
     conf.addResource("classpath:/hadoop/hdfs-site.xml");
     conf.addResource("classpath:/hadoop/mapred-site.xml");
     return conf;
   }
   
-  public static JobConf makeCopy(JobConf original) {
+  public static Configuration makeConfCopy(Configuration original) {
     if(original == null)
       return null;
 
-    return new JobConf(original);
+    return new Configuration(original);
   }
 }

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.apache.hadoop.mapred.JobConf;
+import org.apache.hadoop.conf.Configuration;
 import org.armon.myhadoop.recommend.Step;
 import org.armon.myhadoop.util.myHaoopUtil;
 
@@ -34,32 +34,18 @@ public class Recommend {
     path.put("Step6Input", path.get("Step5Output"));
     path.put("Step6Output", path.get("Step1Input") + "/step6");
     
-    JobConf conf = myHaoopUtil.getJobConf(Recommend.class.getName());
-    Step step1 = new Step1(myHaoopUtil.makeCopy(conf));
-    Step step2 = new Step2(myHaoopUtil.makeCopy(conf));
-    Step step3 = new Step3(myHaoopUtil.makeCopy(conf));
-    Step step4_1 = new Step4_Update(myHaoopUtil.makeCopy(conf));
-    Step step4_2 = new Step4_Update2(myHaoopUtil.makeCopy(conf));
+    Configuration conf = myHaoopUtil.getConf();
+    Step step1 = new Step1(myHaoopUtil.makeConfCopy(conf));
+    Step step2 = new Step2(myHaoopUtil.makeConfCopy(conf));
+    Step step3 = new Step3(myHaoopUtil.makeConfCopy(conf));
+    Step step4_1 = new Step4_Update(myHaoopUtil.makeConfCopy(conf));
+    Step step4_2 = new Step4_Update2(myHaoopUtil.makeConfCopy(conf));
     
     step1.run(path);
-    step1.waitJobFinish();
-    
     step2.run(path);
-    step2.waitJobFinish();
-    
     step3.run(path);
-    step3.waitJobFinish();
-    
     step4_1.run(path);
-    
     step4_2.run(path);
-    
-    // Step4.run(path);
-
-    // // hadoop fs -cat /user/hdfs/recommend/step4/part-00000
-    // JobConf conf = config();
-    // HdfsDAO hdfs = new HdfsDAO(HDFS, conf);
-    // hdfs.cat("/user/hdfs/recommend/step4/part-00000");
     
     System.out.println("recommend finish!");
     System.exit(0);

@@ -3,16 +3,15 @@ package org.armon.myhadoop.recommend.impl;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.RunningJob;
+import org.apache.hadoop.conf.Configuration;
 import org.armon.myhadoop.recommend.Step;
+import org.armon.myhadoop.util.myHaoopUtil;
 
 public class AbstractStep implements Step {
   
-  private JobConf conf;
-  protected RunningJob job;
+  private Configuration conf;
   
-  public AbstractStep(JobConf conf) {
+  public AbstractStep(Configuration conf) {
     this.conf = conf;
   }
 
@@ -21,27 +20,15 @@ public class AbstractStep implements Step {
     
   }
   
-  @Override
-  public void waitJobFinish() throws IOException {
-    while (!job.isComplete()) {
-      job.waitForCompletion();
+  public Configuration getConf() {
+    if (conf == null) {
+      conf = myHaoopUtil.getConf();
     }
-  }
-
-  public JobConf getConf() {
     return conf;
   }
 
-  public void setConf(JobConf conf) {
+  public void setConf(Configuration conf) {
     this.conf = conf;
   }
 
-  public RunningJob getJob() {
-    return job;
-  }
-
-  public void setJob(RunningJob job) {
-    this.job = job;
-  }
-  
 }

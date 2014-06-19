@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -20,7 +20,7 @@ import org.armon.myhadoop.hdfs.HdfsDAO;
 
 public class Step4_Update2 extends AbstractStep {
   
-  public Step4_Update2(JobConf conf) {
+  public Step4_Update2(Configuration conf) {
     super(conf);
   }
 
@@ -70,7 +70,7 @@ public class Step4_Update2 extends AbstractStep {
   }
 
   public void run(Map<String, String> path) throws IOException {
-    JobConf conf = getConf();
+    Configuration conf = getConf();
 
     String input = path.get("Step6Input");
     String output = path.get("Step6Output");

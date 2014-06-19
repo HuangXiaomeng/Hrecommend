@@ -5,10 +5,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -21,7 +21,7 @@ import org.armon.myhadoop.hdfs.HdfsDAO;
 
 public class Step4_Update extends AbstractStep {
   
-  public Step4_Update(JobConf conf) {
+  public Step4_Update(Configuration conf) {
     super(conf);
   }
 
@@ -69,7 +69,6 @@ public class Step4_Update extends AbstractStep {
         // System.out.println(k.toString() + "  " + v.toString());
       }
     }
-
   }
 
   public static class Step4_AggregateReducer extends
@@ -90,11 +89,9 @@ public class Step4_Update extends AbstractStep {
         if (val.startsWith("A:")) {
           String[] kv = Recommend.DELIMITER.split(val.substring(2));
           mapA.put(kv[0], kv[1]);
-
         } else if (val.startsWith("B:")) {
           String[] kv = Recommend.DELIMITER.split(val.substring(2));
           mapB.put(kv[0], kv[1]);
-
         }
       }
 
@@ -120,7 +117,7 @@ public class Step4_Update extends AbstractStep {
   }
 
   public void run(Map<String, String> path) throws IOException {
-    JobConf conf = getConf();
+    Configuration conf = getConf();
 
     String input1 = path.get("Step5Input1");
     String input2 = path.get("Step5Input2");
@@ -154,5 +151,4 @@ public class Step4_Update extends AbstractStep {
       e.printStackTrace();
     }
   }
-
 }

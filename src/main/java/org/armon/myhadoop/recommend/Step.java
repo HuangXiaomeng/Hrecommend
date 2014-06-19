@@ -7,6 +7,4 @@ public interface Step {
   
   public void run(Map<String, String> path) throws IOException;
   
-  public void waitJobFinish() throws IOException;
-
 }
