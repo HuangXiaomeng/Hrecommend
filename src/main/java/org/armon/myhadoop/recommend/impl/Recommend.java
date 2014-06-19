@@ -1,11 +1,12 @@
-package org.armon.myhadoop.recommend;
+package org.armon.myhadoop.recommend.impl;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.hadoop.mapred.JobConf;
-import org.armon.myhadoop.hdfs.HdfsDAO;
+import org.armon.myhadoop.recommend.Step;
+import org.armon.myhadoop.util.myHaoopUtil;
 
 public class Recommend {
 
@@ -19,30 +20,41 @@ public class Recommend {
     path.put("Step1Output", path.get("Step1Input") + "/step1");
     path.put("Step2Input", path.get("Step1Output"));
     path.put("Step2Output", path.get("Step1Input") + "/step2");
-    path.put("Step3Input1", path.get("Step1Output"));
-    path.put("Step3Output1", path.get("Step1Input") + "/step3_1");
-    path.put("Step3Input2", path.get("Step2Output"));
-    path.put("Step3Output2", path.get("Step1Input") + "/step3_2");
+    path.put("Step3Input", path.get("Step1Output"));
+    path.put("Step3Output", path.get("Step1Input") + "/step3");
 
-    path.put("Step4Input1", path.get("Step3Output1"));
-    path.put("Step4Input2", path.get("Step3Output2"));
+    path.put("Step4Input1", path.get("Step3Output"));
+    path.put("Step4Input2", path.get("Step2Output"));
     path.put("Step4Output", path.get("Step1Input") + "/step4");
 
-    path.put("Step5Input1", path.get("Step3Output1"));
-    path.put("Step5Input2", path.get("Step3Output2"));
+    path.put("Step5Input1", path.get("Step3Output"));
+    path.put("Step5Input2", path.get("Step2Output"));
     path.put("Step5Output", path.get("Step1Input") + "/step5");
 
     path.put("Step6Input", path.get("Step5Output"));
     path.put("Step6Output", path.get("Step1Input") + "/step6");
-
-    Step1.run(path);
-    Step2.run(path);
-    Step3.run1(path);
-    Step3.run2(path);
+    
+    JobConf conf = myHaoopUtil.getJobConf(Recommend.class.getName());
+    Step step1 = new Step1(myHaoopUtil.makeCopy(conf));
+    Step step2 = new Step2(myHaoopUtil.makeCopy(conf));
+    Step step3 = new Step3(myHaoopUtil.makeCopy(conf));
+    Step step4_1 = new Step4_Update(myHaoopUtil.makeCopy(conf));
+    Step step4_2 = new Step4_Update2(myHaoopUtil.makeCopy(conf));
+    
+    step1.run(path);
+    step1.waitJobFinish();
+    
+    step2.run(path);
+    step2.waitJobFinish();
+    
+    step3.run(path);
+    step3.waitJobFinish();
+    
+    step4_1.run(path);
+    
+    step4_2.run(path);
+    
     // Step4.run(path);
-
-    Step4_Update.run(path);
-    Step4_Update2.run(path);
 
     // // hadoop fs -cat /user/hdfs/recommend/step4/part-00000
     // JobConf conf = config();
@@ -52,15 +64,4 @@ public class Recommend {
     System.out.println("recommend finish!");
     System.exit(0);
   }
-
-  public static JobConf config() {
-    JobConf conf = new JobConf(Recommend.class);
-    conf.setJobName("Recommand");
-    conf.addResource("classpath:/hadoop/core-site.xml");
-    conf.addResource("classpath:/hadoop/hdfs-site.xml");
-    conf.addResource("classpath:/hadoop/mapred-site.xml");
-    conf.set("io.sort.mb", "1024");
-    return conf;
-  }
-
 }

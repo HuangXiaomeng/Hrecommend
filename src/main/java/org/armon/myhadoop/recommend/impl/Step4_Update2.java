@@ -1,4 +1,4 @@
-package org.armon.myhadoop.recommend;
+package org.armon.myhadoop.recommend.impl;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -18,7 +18,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step4_Update2 {
+public class Step4_Update2 extends AbstractStep {
+  
+  public Step4_Update2(JobConf conf) {
+    super(conf);
+  }
 
   public static class Step4_RecommendMapper extends
       Mapper<LongWritable, Text, Text, Text> {
@@ -65,9 +69,8 @@ public class Step4_Update2 {
     }
   }
 
-  public static void run(Map<String, String> path) throws IOException,
-      InterruptedException, ClassNotFoundException {
-    JobConf conf = Recommend.config();
+  public void run(Map<String, String> path) throws IOException {
+    JobConf conf = getConf();
 
     String input = path.get("Step6Input");
     String output = path.get("Step6Output");
@@ -90,7 +93,15 @@ public class Step4_Update2 {
     FileInputFormat.setInputPaths(job, new Path(input));
     FileOutputFormat.setOutputPath(job, new Path(output));
 
-    job.waitForCompletion(true);
+    try {
+      job.waitForCompletion(true);
+    } catch (ClassNotFoundException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
 }

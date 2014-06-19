@@ -19,7 +19,7 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
-import org.armon.myhadoop.recommend.Recommend;
+import org.armon.myhadoop.recommend.impl.Recommend;
 
 public class WordCount {
 

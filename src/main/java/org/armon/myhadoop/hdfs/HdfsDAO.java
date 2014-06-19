@@ -30,23 +30,6 @@ public class HdfsDAO {
   private String hdfsPath;
   private Configuration conf;
 
-  public static void main(String[] args) throws IOException {
-    JobConf conf = config();
-    HdfsDAO hdfs = new HdfsDAO(conf);
-    // hdfs.copyFile("datafile/item.csv", "/tmp/new");
-    // hdfs.ls("/tmp/new");
-    hdfs.rename("/user/hdfs/pagerank/tmp3", "/user/hdfs/pagerank/tmp4");
-  }
-
-  public static JobConf config() {
-    JobConf conf = new JobConf(HdfsDAO.class);
-    conf.setJobName("HdfsDAO");
-    conf.addResource("classpath:/hadoop/core-site.xml");
-    conf.addResource("classpath:/hadoop/hdfs-site.xml");
-    conf.addResource("classpath:/hadoop/mapred-site.xml");
-    return conf;
-  }
-
   public void mkdirs(String folder) throws IOException {
     Path path = new Path(folder);
     FileSystem fs = FileSystem.get(URI.create(hdfsPath), conf);

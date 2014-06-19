@@ -1,4 +1,4 @@
-package org.armon.myhadoop.recommend;
+package org.armon.myhadoop.recommend.impl;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -17,12 +17,16 @@ import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reducer;
 import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step2 {
+public class Step2 extends AbstractStep {
+  
+  public Step2(JobConf conf) {
+    super(conf);
+  }
+  
   public static class Step2_UserVectorToCooccurrenceMapper extends
       MapReduceBase implements Mapper<LongWritable, Text, Text, IntWritable> {
     private final static Text k = new Text();
@@ -60,9 +64,10 @@ public class Step2 {
       output.collect(key, result);
     }
   }
-
-  public static void run(Map<String, String> path) throws IOException {
-    JobConf conf = Recommend.config();
+  
+  @Override
+  public void run(Map<String, String> path) throws IOException {
+    JobConf conf = getConf();
 
     String input = path.get("Step2Input");
     String output = path.get("Step2Output");
@@ -70,6 +75,9 @@ public class Step2 {
     HdfsDAO hdfs = new HdfsDAO(Recommend.HDFS, conf);
     hdfs.rmr(output);
 
+    conf.setMapOutputKeyClass(Text.class);
+    conf.setMapOutputValueClass(IntWritable.class);
+    
     conf.setOutputKeyClass(Text.class);
     conf.setOutputValueClass(IntWritable.class);
 
@@ -83,9 +91,8 @@ public class Step2 {
     FileInputFormat.setInputPaths(conf, new Path(input));
     FileOutputFormat.setOutputPath(conf, new Path(output));
 
-    RunningJob job = JobClient.runJob(conf);
-    while (!job.isComplete()) {
-      job.waitForCompletion();
-    }
+    job = JobClient.runJob(conf);
+    
+//    hdfs.cat(output + "/part-00000");
   }
 }

@@ -1,4 +1,4 @@
-package org.armon.myhadoop.recommend;
+package org.armon.myhadoop.recommend.impl;
 
 import java.io.IOException;
 import java.util.Map;
@@ -15,14 +15,17 @@ import org.apache.hadoop.mapred.MapReduceBase;
 import org.apache.hadoop.mapred.Mapper;
 import org.apache.hadoop.mapred.OutputCollector;
 import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step3 {
+public class Step3 extends AbstractStep {
+  
+  public Step3(JobConf conf) {
+    super(conf);
+  }
 
-  public static class Step31_UserVectorSplitterMapper extends MapReduceBase
+  public static class Step3_UserVectorSplitterMapper extends MapReduceBase
       implements Mapper<LongWritable, Text, IntWritable, Text> {
     private final static IntWritable k = new IntWritable();
     private final static Text v = new Text();
@@ -44,19 +47,19 @@ public class Step3 {
     }
   }
 
-  public static void run1(Map<String, String> path) throws IOException {
-    JobConf conf = Recommend.config();
+  @Override
+  public void run(Map<String, String> path) throws IOException {
+    JobConf conf = getConf();
 
-    String input = path.get("Step3Input1");
-    String output = path.get("Step3Output1");
+    String input = path.get("Step3Input");
+    String output = path.get("Step3Output");
 
     HdfsDAO hdfs = new HdfsDAO(Recommend.HDFS, conf);
     hdfs.rmr(output);
-
-    conf.setOutputKeyClass(IntWritable.class);
-    conf.setOutputValueClass(Text.class);
-
-    conf.setMapperClass(Step31_UserVectorSplitterMapper.class);
+    
+    conf.setMapOutputKeyClass(IntWritable.class);
+    conf.setMapOutputValueClass(Text.class);
+    conf.setMapperClass(Step3_UserVectorSplitterMapper.class);
 
     conf.setInputFormat(TextInputFormat.class);
     conf.setOutputFormat(TextOutputFormat.class);
@@ -64,12 +67,9 @@ public class Step3 {
     FileInputFormat.setInputPaths(conf, new Path(input));
     FileOutputFormat.setOutputPath(conf, new Path(output));
 
-    RunningJob job = JobClient.runJob(conf);
-    while (!job.isComplete()) {
-      job.waitForCompletion();
-    }
+    job = JobClient.runJob(conf);
   }
-
+/*
   public static class Step32_CooccurrenceColumnWrapperMapper extends
       MapReduceBase implements Mapper<LongWritable, Text, Text, IntWritable> {
     private final static Text k = new Text();
@@ -86,8 +86,8 @@ public class Step3 {
     }
   }
 
-  public static void run2(Map<String, String> path) throws IOException {
-    JobConf conf = Recommend.config();
+  public void run2(Map<String, String> path) throws IOException {
+    JobConf conf = getConf();
 
     String input = path.get("Step3Input2");
     String output = path.get("Step3Output2");
@@ -111,5 +111,5 @@ public class Step3 {
       job.waitForCompletion();
     }
   }
-
+*/
 }

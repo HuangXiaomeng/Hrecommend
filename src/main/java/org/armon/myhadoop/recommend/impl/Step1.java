@@ -1,4 +1,4 @@
-package org.armon.myhadoop.recommend;
+package org.armon.myhadoop.recommend.impl;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -21,7 +21,11 @@ import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step1 {
+public class Step1 extends AbstractStep {
+  
+  public Step1(JobConf conf) {
+    super(conf);
+  }
 
   public static class Step1_ToItemPreMapper extends MapReduceBase implements
       Mapper<Object, Text, IntWritable, Text> {
@@ -59,8 +63,9 @@ public class Step1 {
     }
   }
 
-  public static void run(Map<String, String> path) throws IOException {
-    JobConf conf = Recommend.config();
+  @Override
+  public void run(Map<String, String> path) throws IOException {
+    JobConf conf = getConf();
 
     String input = path.get("Step1Input");
     String output = path.get("Step1Output");
@@ -72,7 +77,7 @@ public class Step1 {
     hdfs.copyFile(path.get("data"), input);
 
     conf.setMapOutputKeyClass(IntWritable.class);
-    conf.setMapOutputValueClass(Text.class);
+    conf.setMapOutputValueClass(Text.class); 
 
     conf.setOutputKeyClass(IntWritable.class);
     conf.setOutputValueClass(Text.class);
@@ -87,10 +92,9 @@ public class Step1 {
     FileInputFormat.setInputPaths(conf, new Path(input));
     FileOutputFormat.setOutputPath(conf, new Path(output));
 
-    RunningJob job = JobClient.runJob(conf);
-    while (!job.isComplete()) {
-      job.waitForCompletion();
-    }
+    job = JobClient.runJob(conf);
+    
+//    hdfs.cat(output + "/part-00000");
   }
 
 }

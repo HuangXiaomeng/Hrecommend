@@ -1,4 +1,4 @@
-package org.armon.myhadoop.recommend;
+package org.armon.myhadoop.recommend.impl;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,8 +24,13 @@ import org.apache.hadoop.mapred.RunningJob;
 import org.apache.hadoop.mapred.TextInputFormat;
 import org.apache.hadoop.mapred.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
+import org.armon.myhadoop.recommend.Cooccurrence;
 
-public class Step4 {
+public class Step4 extends AbstractStep {
+  
+  public Step4(JobConf conf) {
+    super(conf);
+  }
 
   public static class Step4_PartialMultiplyMapper extends MapReduceBase
       implements Mapper<LongWritable, Text, IntWritable, Text> {
@@ -99,8 +104,8 @@ public class Step4 {
     }
   }
 
-  public static void run(Map<String, String> path) throws IOException {
-    JobConf conf = Recommend.config();
+  public void run(Map<String, String> path) throws IOException {
+    JobConf conf = getConf() ;
 
     String input1 = path.get("Step4Input1");
     String input2 = path.get("Step4Input2");
@@ -130,40 +135,3 @@ public class Step4 {
 
 }
 
-class Cooccurrence {
-  private int itemID1;
-  private int itemID2;
-  private int num;
-
-  public Cooccurrence(int itemID1, int itemID2, int num) {
-    super();
-    this.itemID1 = itemID1;
-    this.itemID2 = itemID2;
-    this.num = num;
-  }
-
-  public int getItemID1() {
-    return itemID1;
-  }
-
-  public void setItemID1(int itemID1) {
-    this.itemID1 = itemID1;
-  }
-
-  public int getItemID2() {
-    return itemID2;
-  }
-
-  public void setItemID2(int itemID2) {
-    this.itemID2 = itemID2;
-  }
-
-  public int getNum() {
-    return num;
-  }
-
-  public void setNum(int num) {
-    this.num = num;
-  }
-
-}

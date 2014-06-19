@@ -1,4 +1,4 @@
-package org.armon.myhadoop.recommend;
+package org.armon.myhadoop.recommend.impl;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -19,7 +19,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step4_Update {
+public class Step4_Update extends AbstractStep {
+  
+  public Step4_Update(JobConf conf) {
+    super(conf);
+  }
 
   public static class Step4_PartialMultiplyMapper extends
       Mapper<LongWritable, Text, Text, Text> {
@@ -40,7 +44,7 @@ public class Step4_Update {
         throws IOException, InterruptedException {
       String[] tokens = Recommend.DELIMITER.split(values.toString());
 
-      if (flag.equals("step3_2")) {// 同现矩阵
+      if (flag.equals("step2")) {// 同现矩阵
         String[] v1 = tokens[0].split(":");
         String itemID1 = v1[0];
         String itemID2 = v1[1];
@@ -52,7 +56,7 @@ public class Step4_Update {
         context.write(k, v);
         // System.out.println(k.toString() + "  " + v.toString());
 
-      } else if (flag.equals("step3_1")) {// 评分矩阵
+      } else if (flag.equals("step3")) {// 评分矩阵
         String[] v2 = tokens[1].split(":");
         String itemID = tokens[0];
         String userID = v2[0];
@@ -115,9 +119,8 @@ public class Step4_Update {
     }
   }
 
-  public static void run(Map<String, String> path) throws IOException,
-      InterruptedException, ClassNotFoundException {
-    JobConf conf = Recommend.config();
+  public void run(Map<String, String> path) throws IOException {
+    JobConf conf = getConf();
 
     String input1 = path.get("Step5Input1");
     String input2 = path.get("Step5Input2");
@@ -141,7 +144,15 @@ public class Step4_Update {
     FileInputFormat.setInputPaths(job, new Path(input1), new Path(input2));
     FileOutputFormat.setOutputPath(job, new Path(output));
 
-    job.waitForCompletion(true);
+    try {
+      job.waitForCompletion(true);
+    } catch (ClassNotFoundException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    } catch (InterruptedException e) {
+      // TODO Auto-generated catch block
+      e.printStackTrace();
+    }
   }
 
 }
