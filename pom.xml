@@ -8,9 +8,32 @@
 	<name>myHadoop</name>
 	<url>http://maven.apache.org</url>
 	
+	 <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <!-- avoid warning about recursion -->
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+	
 	<modules>
-    <module>hadoop-recommend</module>
-    <module>mahout-recommend</module>
+		<module>myhadoop-common</module>
+    <module>myhadoop-recommend</module>
+    <module>mymahout-recommend</module>
   </modules>
 	
 </project>
