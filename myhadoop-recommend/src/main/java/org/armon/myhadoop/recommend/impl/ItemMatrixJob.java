@@ -16,9 +16,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step3 extends AbstractStep {
+public class ItemMatrixJob extends AbstractJob {
   
-  public Step3(Configuration conf) {
+  public ItemMatrixJob(Configuration conf) {
     super(conf);
   }
 
@@ -44,7 +44,7 @@ public class Step3 extends AbstractStep {
   }
 
   @Override
-  public void run(Map<String, String> path) throws IOException {
+  public void run(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input = path.get("Step3Input");
@@ -65,15 +65,7 @@ public class Step3 extends AbstractStep {
     FileInputFormat.setInputPaths(job, new Path(input));
     FileOutputFormat.setOutputPath(job, new Path(output));
     
-    try {
-      job.waitForCompletion(true);
-    } catch (ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
-
+    
+    job.waitForCompletion(true);
   }
 }

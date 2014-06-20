@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.hadoop.conf.Configuration;
-import org.armon.myhadoop.recommend.Step;
+import org.armon.myhadoop.recommend.MyJob;
 import org.armon.myhadoop.util.myHaoopUtil;
 
 public class Recommend {
@@ -35,17 +35,22 @@ public class Recommend {
     path.put("Step6Output", path.get("Step1Input") + "/step6");
     
     Configuration conf = myHaoopUtil.getConf();
-    Step step1 = new Step1(myHaoopUtil.makeConfCopy(conf));
-    Step step2 = new Step2(myHaoopUtil.makeConfCopy(conf));
-    Step step3 = new Step3(myHaoopUtil.makeConfCopy(conf));
-    Step step4_1 = new Step4_Update(myHaoopUtil.makeConfCopy(conf));
-    Step step4_2 = new Step4_Update2(myHaoopUtil.makeConfCopy(conf));
+    // step 1
+    MyJob job1 = new UserVectorJob(myHaoopUtil.makeConfCopy(conf));
+    // step 1
+    MyJob job2 = new CooccurrenceMatrixJob(myHaoopUtil.makeConfCopy(conf));
+    // step 1
+    MyJob job3 = new ItemMatrixJob(myHaoopUtil.makeConfCopy(conf));
+    // step 1
+    MyJob job4 = new PartialMultiplyJob(myHaoopUtil.makeConfCopy(conf));
+    // step 1
+    MyJob job5 = new CalcRecommendJob(myHaoopUtil.makeConfCopy(conf));
     
-    step1.run(path);
-    step2.run(path);
-    step3.run(path);
-    step4_1.run(path);
-    step4_2.run(path);
+    job1.run(path);
+    job2.run(path);
+    job3.run(path);
+    job4.run(path);
+    job5.run(path);
     
     System.out.println("recommend finish!");
     System.exit(0);

@@ -18,13 +18,13 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step4_Update2 extends AbstractStep {
+public class CalcRecommendJob extends AbstractJob {
   
-  public Step4_Update2(Configuration conf) {
+  public CalcRecommendJob(Configuration conf) {
     super(conf);
   }
 
-  public static class Step4_RecommendMapper extends
+  public static class Step5_RecommendMapper extends
       Mapper<LongWritable, Text, Text, Text> {
 
     @Override
@@ -37,7 +37,7 @@ public class Step4_Update2 extends AbstractStep {
     }
   }
 
-  public static class Step4_RecommendReducer extends
+  public static class Step5_RecommendReducer extends
       Reducer<Text, Text, Text, Text> {
 
     @Override
@@ -69,7 +69,7 @@ public class Step4_Update2 extends AbstractStep {
     }
   }
 
-  public void run(Map<String, String> path) throws IOException {
+  public void run(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input = path.get("Step6Input");
@@ -79,13 +79,13 @@ public class Step4_Update2 extends AbstractStep {
     hdfs.rmr(output);
 
     Job job = new Job(conf);
-    job.setJarByClass(Step4_Update2.class);
+    job.setJarByClass(CalcRecommendJob.class);
 
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
 
-    job.setMapperClass(Step4_Update2.Step4_RecommendMapper.class);
-    job.setReducerClass(Step4_Update2.Step4_RecommendReducer.class);
+    job.setMapperClass(Step5_RecommendMapper.class);
+    job.setReducerClass(Step5_RecommendReducer.class);
 
     job.setInputFormatClass(TextInputFormat.class);
     job.setOutputFormatClass(TextOutputFormat.class);
@@ -93,15 +93,6 @@ public class Step4_Update2 extends AbstractStep {
     FileInputFormat.setInputPaths(job, new Path(input));
     FileOutputFormat.setOutputPath(job, new Path(output));
 
-    try {
-      job.waitForCompletion(true);
-    } catch (ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    job.waitForCompletion(true);
   }
-
 }

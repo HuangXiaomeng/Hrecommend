@@ -19,9 +19,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step4_Update extends AbstractStep {
+public class PartialMultiplyJob extends AbstractJob {
   
-  public Step4_Update(Configuration conf) {
+  public PartialMultiplyJob(Configuration conf) {
     super(conf);
   }
 
@@ -116,7 +116,7 @@ public class Step4_Update extends AbstractStep {
     }
   }
 
-  public void run(Map<String, String> path) throws IOException {
+  public void run(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input1 = path.get("Step5Input1");
@@ -127,13 +127,13 @@ public class Step4_Update extends AbstractStep {
     hdfs.rmr(output);
 
     Job job = new Job(conf);
-    job.setJarByClass(Step4_Update.class);
+    job.setJarByClass(PartialMultiplyJob.class);
 
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(Text.class);
 
-    job.setMapperClass(Step4_Update.Step4_PartialMultiplyMapper.class);
-    job.setReducerClass(Step4_Update.Step4_AggregateReducer.class);
+    job.setMapperClass(Step4_PartialMultiplyMapper.class);
+    job.setReducerClass(Step4_AggregateReducer.class);
 
     job.setInputFormatClass(TextInputFormat.class);
     job.setOutputFormatClass(TextOutputFormat.class);
@@ -141,14 +141,6 @@ public class Step4_Update extends AbstractStep {
     FileInputFormat.setInputPaths(job, new Path(input1), new Path(input2));
     FileOutputFormat.setOutputPath(job, new Path(output));
 
-    try {
-      job.waitForCompletion(true);
-    } catch (ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    job.waitForCompletion(true);
   }
 }

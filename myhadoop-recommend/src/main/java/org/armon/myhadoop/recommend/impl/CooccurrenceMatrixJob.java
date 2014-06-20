@@ -17,9 +17,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step2 extends AbstractStep {
+public class CooccurrenceMatrixJob extends AbstractJob {
   
-  public Step2(Configuration conf) {
+  public CooccurrenceMatrixJob(Configuration conf) {
     super(conf);
   }
 
@@ -59,7 +59,7 @@ public class Step2 extends AbstractStep {
   }
   
   @Override
-  public void run(Map<String, String> path) throws IOException {
+  public void run(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input = path.get("Step2Input");
@@ -86,15 +86,8 @@ public class Step2 extends AbstractStep {
     FileInputFormat.setInputPaths(job, new Path(input));
     FileOutputFormat.setOutputPath(job, new Path(output));
 
-    try {
-      job.waitForCompletion(true);
-    } catch (ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    job.waitForCompletion(true);
+    
 //    hdfs.cat(output + "/part-00000");
   }
 }

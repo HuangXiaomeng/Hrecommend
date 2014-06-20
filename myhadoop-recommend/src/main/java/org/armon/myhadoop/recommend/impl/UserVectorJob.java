@@ -16,9 +16,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
-public class Step1 extends AbstractStep {
+public class UserVectorJob extends AbstractJob {
   
-  public Step1(Configuration conf) {
+  public UserVectorJob(Configuration conf) {
     super(conf);
   }
 
@@ -54,7 +54,7 @@ public class Step1 extends AbstractStep {
   }
 
   @Override
-  public void run(Map<String, String> path) throws IOException {
+  public void run(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input = path.get("Step1Input");
@@ -67,7 +67,7 @@ public class Step1 extends AbstractStep {
     hdfs.copyFile(path.get("data"), input);
     
     Job job = new Job(conf);
-    job.setJarByClass(Step1.class);
+    job.setJarByClass(UserVectorJob.class);
     
     job.setMapOutputKeyClass(IntWritable.class);
     job.setMapOutputValueClass(Text.class); 
@@ -85,15 +85,9 @@ public class Step1 extends AbstractStep {
     FileInputFormat.setInputPaths(job, new Path(input));
     FileOutputFormat.setOutputPath(job, new Path(output));
 
-    try {
-      job.waitForCompletion(true);
-    } catch (ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    }
+    
+    job.waitForCompletion(true);
+    
 //    hdfs.cat(output + "/part-00000");
   }
 

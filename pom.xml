@@ -32,7 +32,7 @@
 	
 	<modules>
 		<module>myhadoop-common</module>
-    <module>myhadoop-recommend</module>
+		<module>myhadoop-recommend</module>
     <module>mymahout-recommend</module>
   </modules>
 	
