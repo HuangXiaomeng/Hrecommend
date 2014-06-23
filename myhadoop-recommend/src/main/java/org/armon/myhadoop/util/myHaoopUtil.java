@@ -11,6 +11,7 @@ import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 public class myHaoopUtil {
 
@@ -29,16 +30,60 @@ public class myHaoopUtil {
     return new Configuration(original);
   }
 
-  public static Job prepareJob(Path inputPath, Path outputPath,
-      Class<? extends InputFormat> inputFormat, 
+  /**
+   * mapper only
+   */
+  public static Job prepareJob(
+       Class<? extends Mapper> mapper,
+      Class<? extends Writable> mapperKey,
+      Class<? extends Writable> mapperValue,
+      Class<? extends InputFormat> inputFormat,
+      Class<? extends OutputFormat> outputFormat, 
+      Configuration conf,
+      Path outputPath,
+      Path... inputPaths) throws IOException {
+
+    Job job = new Job(new Configuration(conf));
+    Configuration jobConf = job.getConfiguration();
+
+    if (mapper.equals(Mapper.class)) {
+      throw new IllegalStateException(
+          "Can't figure out the user class jar file from mapper/reducer");
+    }
+    job.setJarByClass(mapper);
+
+    job.setInputFormatClass(inputFormat);
+    FileInputFormat.setInputPaths(job, inputPaths);
+
+    job.setMapperClass(mapper);
+    job.setMapOutputKeyClass(mapperKey);
+    job.setMapOutputValueClass(mapperValue);
+    job.setOutputKeyClass(mapperKey);
+    job.setOutputValueClass(mapperValue);
+    jobConf.setBoolean("mapred.compress.map.output", true);
+    job.setNumReduceTasks(0);
+
+    job.setOutputFormatClass(outputFormat);
+    jobConf.set("mapred.output.dir", outputPath.toString());
+
+    return job;
+  }
+
+  /**
+   * mapper and reducer
+   */
+  public static Job prepareJob(
       Class<? extends Mapper> mapper,
       Class<? extends Writable> mapperKey,
       Class<? extends Writable> mapperValue,
       Class<? extends Reducer> reducer,
       Class<? extends Writable> reducerKey,
       Class<? extends Writable> reducerValue,
+      Class<? extends InputFormat> inputFormat,
       Class<? extends OutputFormat> outputFormat, 
-      Configuration conf) throws IOException {
+      Configuration conf,
+      Path outputPath,
+      Path... inputPaths) throws IOException {
 
     Job job = new Job(new Configuration(conf));
     Configuration jobConf = job.getConfiguration();
@@ -54,7 +99,7 @@ public class myHaoopUtil {
     }
 
     job.setInputFormatClass(inputFormat);
-    jobConf.set("mapred.input.dir", inputPath.toString());
+    FileInputFormat.setInputPaths(job, inputPaths);
 
     job.setMapperClass(mapper);
     if (mapperKey != null) {

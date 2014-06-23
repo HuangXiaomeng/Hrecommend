@@ -7,6 +7,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Writable;
 import org.apache.hadoop.mapreduce.InputFormat;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -26,18 +27,36 @@ public class AbstractJob implements MyJob {
     
   }
   
-  protected void prepareJob(Path inputPath, Path outputPath,
-      Class<? extends InputFormat> inputFormat, 
+  protected Job prepareJob(
+      Class<? extends Mapper> mapper,
+     Class<? extends Writable> mapperKey,
+     Class<? extends Writable> mapperValue,
+     Class<? extends InputFormat> inputFormat,
+     Class<? extends OutputFormat> outputFormat, 
+     Configuration conf,
+     Path outputPath,
+     Path... inputPaths) throws IOException {
+    return myHaoopUtil.prepareJob(mapper, mapperKey, mapperValue, 
+        inputFormat, outputFormat, conf,
+        outputPath, inputPaths);
+  }
+  
+  protected Job prepareJob(
       Class<? extends Mapper> mapper,
       Class<? extends Writable> mapperKey,
       Class<? extends Writable> mapperValue,
       Class<? extends Reducer> reducer,
       Class<? extends Writable> reducerKey,
       Class<? extends Writable> reducerValue,
+      Class<? extends InputFormat> inputFormat,
       Class<? extends OutputFormat> outputFormat, 
-      Configuration conf) throws IOException {
-    myHaoopUtil.prepareJob(inputPath, outputPath, inputFormat, mapper, 
-        mapperKey, mapperValue, reducer, reducerKey, reducerValue, outputFormat, conf);
+      Configuration conf,
+      Path outputPath,
+      Path... inputPaths) throws IOException {
+    return myHaoopUtil.prepareJob(mapper, mapperKey, mapperValue, 
+        reducer, reducerKey, reducerValue, 
+        inputFormat, outputFormat, conf,
+        outputPath, inputPaths);
   }
   
   public Configuration getConf() {

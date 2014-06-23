@@ -16,7 +16,12 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
+import org.armon.myhadoop.recommend.impl.UserVectorJob.Step1_ToItemPreMapper;
+import org.armon.myhadoop.recommend.impl.UserVectorJob.Step1_ToUserVectorReducer;
 
+/****************************************************************
+ * Step2
+ *****************************************************************/
 public class CooccurrenceMatrixJob extends AbstractJob {
   
   public CooccurrenceMatrixJob(Configuration conf) {
@@ -31,7 +36,7 @@ public class CooccurrenceMatrixJob extends AbstractJob {
     @Override
     public void map(LongWritable key, Text values, Context context)
         throws IOException, InterruptedException {
-      String[] tokens = Recommend.DELIMITER.split(values.toString());
+      String[] tokens = RecommendMain.DELIMITER.split(values.toString());
       for (int i = 1; i < tokens.length; i++) {
         String itemID = tokens[i].split(":")[0];
         for (int j = 1; j < tokens.length; j++) {
@@ -67,25 +72,12 @@ public class CooccurrenceMatrixJob extends AbstractJob {
 
     HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(output);
+
+    Job job = prepareJob(Step2_UserVectorToCooccurrenceMapper.class, Text.class, IntWritable.class, 
+        Step2_UserVectorToConoccurrenceReducer.class, Text.class, IntWritable.class, 
+        TextInputFormat.class, TextOutputFormat.class, conf,
+        new Path(output), new Path(input));
     
-    Job job = new Job(conf);
-
-    job.setMapOutputKeyClass(Text.class);
-    job.setMapOutputValueClass(IntWritable.class);
-    
-    job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(IntWritable.class);
-
-    job.setMapperClass(Step2_UserVectorToCooccurrenceMapper.class);
-    job.setCombinerClass(Step2_UserVectorToConoccurrenceReducer.class);
-    job.setReducerClass(Step2_UserVectorToConoccurrenceReducer.class);
-
-    job.setInputFormatClass(TextInputFormat.class);
-    job.setOutputFormatClass(TextOutputFormat.class);
-
-    FileInputFormat.setInputPaths(job, new Path(input));
-    FileOutputFormat.setOutputPath(job, new Path(output));
-
     job.waitForCompletion(true);
     
 //    hdfs.cat(output + "/part-00000");

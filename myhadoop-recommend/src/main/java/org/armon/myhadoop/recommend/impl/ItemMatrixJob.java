@@ -15,7 +15,12 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
+import org.armon.myhadoop.recommend.impl.CooccurrenceMatrixJob.Step2_UserVectorToConoccurrenceReducer;
+import org.armon.myhadoop.recommend.impl.CooccurrenceMatrixJob.Step2_UserVectorToCooccurrenceMapper;
 
+/****************************************************************
+ * Step3
+ *****************************************************************/
 public class ItemMatrixJob extends AbstractJob {
   
   public ItemMatrixJob(Configuration conf) {
@@ -30,7 +35,7 @@ public class ItemMatrixJob extends AbstractJob {
     @Override
     public void map(LongWritable key, Text values, Context context)
         throws IOException, InterruptedException {
-      String[] tokens = Recommend.DELIMITER.split(values.toString());
+      String[] tokens = RecommendMain.DELIMITER.split(values.toString());
       for (int i = 1; i < tokens.length; i++) {
         String[] vector = tokens[i].split(":");
         int itemID = Integer.parseInt(vector[0]);
@@ -53,18 +58,9 @@ public class ItemMatrixJob extends AbstractJob {
     HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(output);
     
-    Job job = new Job(conf);
-    
-    job.setMapOutputKeyClass(IntWritable.class);
-    job.setMapOutputValueClass(Text.class);
-    job.setMapperClass(Step3_UserVectorSplitterMapper.class);
-
-    job.setInputFormatClass(TextInputFormat.class);
-    job.setOutputFormatClass(TextOutputFormat.class);
-
-    FileInputFormat.setInputPaths(job, new Path(input));
-    FileOutputFormat.setOutputPath(job, new Path(output));
-    
+    Job job = prepareJob(Step3_UserVectorSplitterMapper.class, IntWritable.class, Text.class, 
+        TextInputFormat.class, TextOutputFormat.class, conf,
+        new Path(output), new Path(input));
     
     job.waitForCompletion(true);
   }

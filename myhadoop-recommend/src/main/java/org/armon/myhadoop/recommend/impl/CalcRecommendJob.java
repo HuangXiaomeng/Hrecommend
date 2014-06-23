@@ -17,7 +17,12 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
+import org.armon.myhadoop.recommend.impl.PartialMultiplyJob.Step4_AggregateReducer;
+import org.armon.myhadoop.recommend.impl.PartialMultiplyJob.Step4_PartialMultiplyMapper;
 
+/****************************************************************
+ * Step5
+ *****************************************************************/
 public class CalcRecommendJob extends AbstractJob {
   
   public CalcRecommendJob(Configuration conf) {
@@ -30,7 +35,7 @@ public class CalcRecommendJob extends AbstractJob {
     @Override
     public void map(LongWritable key, Text values, Context context)
         throws IOException, InterruptedException {
-      String[] tokens = Recommend.DELIMITER.split(values.toString());
+      String[] tokens = RecommendMain.DELIMITER.split(values.toString());
       Text k = new Text(tokens[0]);
       Text v = new Text(tokens[1] + "," + tokens[2]);
       context.write(k, v);
@@ -48,7 +53,7 @@ public class CalcRecommendJob extends AbstractJob {
 
       for (Text line : values) {
         System.out.println(line.toString());
-        String[] tokens = Recommend.DELIMITER.split(line.toString());
+        String[] tokens = RecommendMain.DELIMITER.split(line.toString());
         String itemID = tokens[0];
         Double score = Double.parseDouble(tokens[1]);
 
@@ -72,26 +77,16 @@ public class CalcRecommendJob extends AbstractJob {
   public void run(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
-    String input = path.get("Step6Input");
-    String output = path.get("Step6Output");
+    String input = path.get("Step5Input");
+    String output = path.get("Step5Output");
 
     HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(output);
 
-    Job job = new Job(conf);
-    job.setJarByClass(CalcRecommendJob.class);
-
-    job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(Text.class);
-
-    job.setMapperClass(Step5_RecommendMapper.class);
-    job.setReducerClass(Step5_RecommendReducer.class);
-
-    job.setInputFormatClass(TextInputFormat.class);
-    job.setOutputFormatClass(TextOutputFormat.class);
-
-    FileInputFormat.setInputPaths(job, new Path(input));
-    FileOutputFormat.setOutputPath(job, new Path(output));
+    Job job = prepareJob(Step5_RecommendMapper.class, Text.class, Text.class, 
+        Step5_RecommendReducer.class, Text.class, Text.class, 
+        TextInputFormat.class, TextOutputFormat.class, conf,
+        new Path(output), new Path(input));
 
     job.waitForCompletion(true);
   }

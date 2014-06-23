@@ -10,12 +10,13 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
 
+/****************************************************************
+ * Step1
+ *****************************************************************/
 public class UserVectorJob extends AbstractJob {
   
   public UserVectorJob(Configuration conf) {
@@ -28,7 +29,7 @@ public class UserVectorJob extends AbstractJob {
     @Override
     public void map(Object key, Text value, Context context)
         throws IOException, InterruptedException {
-      String[] tokens = Recommend.DELIMITER.split(value.toString());
+      String[] tokens = RecommendMain.DELIMITER.split(value.toString());
       int userID = Integer.parseInt(tokens[0]);
       String itemID = tokens[1];
       String pref = tokens[2];
@@ -66,25 +67,10 @@ public class UserVectorJob extends AbstractJob {
     hdfs.mkdirs(input);
     hdfs.copyFile(path.get("data"), input);
     
-    Job job = new Job(conf);
-    job.setJarByClass(UserVectorJob.class);
-    
-    job.setMapOutputKeyClass(IntWritable.class);
-    job.setMapOutputValueClass(Text.class); 
-
-    job.setOutputKeyClass(IntWritable.class);
-    job.setOutputValueClass(Text.class);
-
-    job.setMapperClass(Step1_ToItemPreMapper.class);
-    job.setCombinerClass(Step1_ToUserVectorReducer.class);
-    job.setReducerClass(Step1_ToUserVectorReducer.class);
-
-    job.setInputFormatClass(TextInputFormat.class);
-    job.setOutputFormatClass(TextOutputFormat.class);
-
-    FileInputFormat.setInputPaths(job, new Path(input));
-    FileOutputFormat.setOutputPath(job, new Path(output));
-
+    Job job = prepareJob(Step1_ToItemPreMapper.class, IntWritable.class, Text.class, 
+        Step1_ToUserVectorReducer.class, IntWritable.class, Text.class, 
+        TextInputFormat.class, TextOutputFormat.class, conf,
+        new Path(output), new Path(input));
     
     job.waitForCompletion(true);
     

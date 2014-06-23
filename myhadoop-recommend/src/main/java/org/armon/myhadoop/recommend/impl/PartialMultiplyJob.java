@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -18,7 +19,12 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
+import org.armon.myhadoop.recommend.impl.CooccurrenceMatrixJob.Step2_UserVectorToConoccurrenceReducer;
+import org.armon.myhadoop.recommend.impl.CooccurrenceMatrixJob.Step2_UserVectorToCooccurrenceMapper;
 
+/****************************************************************
+ * Step4
+ *****************************************************************/
 public class PartialMultiplyJob extends AbstractJob {
   
   public PartialMultiplyJob(Configuration conf) {
@@ -42,7 +48,7 @@ public class PartialMultiplyJob extends AbstractJob {
     @Override
     public void map(LongWritable key, Text values, Context context)
         throws IOException, InterruptedException {
-      String[] tokens = Recommend.DELIMITER.split(values.toString());
+      String[] tokens = RecommendMain.DELIMITER.split(values.toString());
 
       if (flag.equals("step2")) {// 同现矩阵
         String[] v1 = tokens[0].split(":");
@@ -87,10 +93,10 @@ public class PartialMultiplyJob extends AbstractJob {
         System.out.println(val);
 
         if (val.startsWith("A:")) {
-          String[] kv = Recommend.DELIMITER.split(val.substring(2));
+          String[] kv = RecommendMain.DELIMITER.split(val.substring(2));
           mapA.put(kv[0], kv[1]);
         } else if (val.startsWith("B:")) {
-          String[] kv = Recommend.DELIMITER.split(val.substring(2));
+          String[] kv = RecommendMain.DELIMITER.split(val.substring(2));
           mapB.put(kv[0], kv[1]);
         }
       }
@@ -119,27 +125,17 @@ public class PartialMultiplyJob extends AbstractJob {
   public void run(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
-    String input1 = path.get("Step5Input1");
-    String input2 = path.get("Step5Input2");
-    String output = path.get("Step5Output");
+    String input1 = path.get("Step4Input1");
+    String input2 = path.get("Step4Input2");
+    String output = path.get("Step4Output");
 
     HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(output);
 
-    Job job = new Job(conf);
-    job.setJarByClass(PartialMultiplyJob.class);
-
-    job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(Text.class);
-
-    job.setMapperClass(Step4_PartialMultiplyMapper.class);
-    job.setReducerClass(Step4_AggregateReducer.class);
-
-    job.setInputFormatClass(TextInputFormat.class);
-    job.setOutputFormatClass(TextOutputFormat.class);
-
-    FileInputFormat.setInputPaths(job, new Path(input1), new Path(input2));
-    FileOutputFormat.setOutputPath(job, new Path(output));
+    Job job = prepareJob(Step4_PartialMultiplyMapper.class, Text.class, Text.class, 
+        Step4_AggregateReducer.class, Text.class, Text.class, 
+        TextInputFormat.class, TextOutputFormat.class, conf,
+        new Path(output), new Path(input1), new Path(input2));
 
     job.waitForCompletion(true);
   }
