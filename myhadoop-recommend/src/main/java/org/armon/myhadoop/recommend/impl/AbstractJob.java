@@ -59,6 +59,19 @@ public class AbstractJob implements MyJob {
         outputPath, inputPaths);
   }
   
+  protected Job prepareJob(
+      Class<? extends Reducer> reducer,
+      Class<? extends Writable> reducerKey,
+      Class<? extends Writable> reducerValue,
+      Class<? extends InputFormat> inputFormat,
+      Class<? extends OutputFormat> outputFormat, 
+      Configuration conf,
+      Path outputPath) throws IOException {
+    return myHaoopUtil.prepareJob(reducer, reducerKey, reducerValue, 
+        inputFormat, outputFormat, conf,
+        outputPath);
+  }
+  
   public Configuration getConf() {
     if (conf == null) {
       conf = myHaoopUtil.getConf();

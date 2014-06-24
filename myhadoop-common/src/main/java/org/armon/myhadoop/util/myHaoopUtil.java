@@ -31,7 +31,7 @@ public class myHaoopUtil {
   }
 
   /**
-   * mapper only
+   * one mapper only
    */
   public static Job prepareJob(
        Class<? extends Mapper> mapper,
@@ -70,7 +70,7 @@ public class myHaoopUtil {
   }
 
   /**
-   * mapper and reducer
+   * one mapper and reducer
    */
   public static Job prepareJob(
       Class<? extends Mapper> mapper,
@@ -108,6 +108,40 @@ public class myHaoopUtil {
     if (mapperValue != null) {
       job.setMapOutputValueClass(mapperValue);
     }
+
+    jobConf.setBoolean("mapred.compress.map.output", true);
+
+    job.setReducerClass(reducer);
+    job.setOutputKeyClass(reducerKey);
+    job.setOutputValueClass(reducerValue);
+
+    job.setOutputFormatClass(outputFormat);
+    jobConf.set("mapred.output.dir", outputPath.toString());
+
+    return job;
+  }
+  
+  /**
+   * one reducer only
+   * add multiple mapper by user using MultipleInputs
+   */
+  public static Job prepareJob(
+      Class<? extends Reducer> reducer,
+      Class<? extends Writable> reducerKey,
+      Class<? extends Writable> reducerValue,
+      Class<? extends InputFormat> inputFormat,
+      Class<? extends OutputFormat> outputFormat, 
+      Configuration conf,
+      Path outputPath) throws IOException {
+
+    Job job = new Job(new Configuration(conf));
+    Configuration jobConf = job.getConfiguration();
+
+    if (!reducer.equals(Reducer.class)) {
+      job.setJarByClass(reducer);
+    }
+
+    job.setInputFormatClass(inputFormat);
 
     jobConf.setBoolean("mapred.compress.map.output", true);
 

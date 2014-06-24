@@ -126,27 +126,13 @@ public class PartialMultiplyJob extends AbstractJob {
     HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(output);
 
-//    Job job = prepareJob(Step4_PartialMultiplyMapper.class, Text.class, Text.class, 
-//        Step4_AggregateReducer.class, Text.class, Text.class, 
-//        TextInputFormat.class, TextOutputFormat.class, conf,
-//        new Path(output), new Path(input1), new Path(input2));
-    
-    Job job = new Job(conf, "partialMultiply");
-    Configuration partialMultiplyConf = job.getConfiguration();
-
+    Job job = prepareJob(Step4_AggregateReducer.class, Text.class, Text.class, 
+        TextInputFormat.class, TextOutputFormat.class, conf,
+        new Path(output));
     MultipleInputs.addInputPath(job, new Path(input1), 
         TextInputFormat.class, Step4_SimilarityMatrixRowWrapperMapper.class);
     MultipleInputs.addInputPath(job, new Path(input2),
         TextInputFormat.class, Step4_UserVectorSplitterMapper.class);
-    job.setJarByClass(PartialMultiplyJob.class);
-    job.setMapOutputKeyClass(Text.class);
-    job.setMapOutputValueClass(Text.class);
-    job.setReducerClass(Step4_AggregateReducer.class);
-    job.setOutputFormatClass(TextOutputFormat.class);
-    job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(Text.class);
-    partialMultiplyConf.setBoolean("mapred.compress.map.output", true);
-    partialMultiplyConf.set("mapred.output.dir", output);
 
     job.waitForCompletion(true);
   }
