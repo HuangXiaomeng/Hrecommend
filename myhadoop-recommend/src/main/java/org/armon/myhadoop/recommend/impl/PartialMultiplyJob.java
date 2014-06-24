@@ -13,6 +13,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.armon.myhadoop.hdfs.HdfsDAO;
@@ -25,50 +26,48 @@ public class PartialMultiplyJob extends AbstractJob {
   public PartialMultiplyJob(Configuration conf) {
     super(conf);
   }
-
-  public static class Step4_PartialMultiplyMapper extends
+  
+  public static class Step4_SimilarityMatrixRowWrapperMapper extends 
       Mapper<LongWritable, Text, Text, Text> {
-
-    private String flag;// A同现矩阵 or B评分矩阵
-
-    @Override
-    protected void setup(Context context) throws IOException,
-        InterruptedException {
-      FileSplit split = (FileSplit) context.getInputSplit();
-      flag = split.getPath().getParent().getName();// 判断读的数据集
-
-      // System.out.println(flag);
-    }
-
+    
     @Override
     public void map(LongWritable key, Text values, Context context)
         throws IOException, InterruptedException {
       String[] tokens = RecommendMain.DELIMITER.split(values.toString());
 
-      if (flag.equals("step2")) {// 同现矩阵
-        String[] v1 = tokens[0].split(":");
-        String itemID1 = v1[0];
-        String itemID2 = v1[1];
-        String num = tokens[1];
+      // 同现矩阵
+      String[] v1 = tokens[0].split(":");
+      String itemID1 = v1[0];
+      String itemID2 = v1[1];
+      String num = tokens[1];
 
-        Text k = new Text(itemID1);
-        Text v = new Text("A:" + itemID2 + "," + num);
+      Text k = new Text(itemID1);
+      Text v = new Text("A:" + itemID2 + "," + num);
 
-        context.write(k, v);
-        // System.out.println(k.toString() + "  " + v.toString());
+      context.write(k, v);
+      // System.out.println(k.toString() + "  " + v.toString());
+    }
+  }
+    
+  public static class Step4_UserVectorSplitterMapper extends
+      Mapper<LongWritable, Text, Text, Text> {
+    
+    @Override
+    public void map(LongWritable key, Text values, Context context)
+        throws IOException, InterruptedException {
+      String[] tokens = RecommendMain.DELIMITER.split(values.toString());
 
-      } else if (flag.equals("step3")) {// 评分矩阵
-        String[] v2 = tokens[1].split(":");
-        String itemID = tokens[0];
-        String userID = v2[0];
-        String pref = v2[1];
+      // 评分矩阵
+      String[] v2 = tokens[1].split(":");
+      String itemID = tokens[0];
+      String userID = v2[0];
+      String pref = v2[1];
 
-        Text k = new Text(itemID);
-        Text v = new Text("B:" + userID + "," + pref);
+      Text k = new Text(itemID);
+      Text v = new Text("B:" + userID + "," + pref);
 
-        context.write(k, v);
-        // System.out.println(k.toString() + "  " + v.toString());
-      }
+      context.write(k, v);
+      // System.out.println(k.toString() + "  " + v.toString());
     }
   }
 
@@ -127,10 +126,27 @@ public class PartialMultiplyJob extends AbstractJob {
     HdfsDAO hdfs = new HdfsDAO(conf);
     hdfs.rmr(output);
 
-    Job job = prepareJob(Step4_PartialMultiplyMapper.class, Text.class, Text.class, 
-        Step4_AggregateReducer.class, Text.class, Text.class, 
-        TextInputFormat.class, TextOutputFormat.class, conf,
-        new Path(output), new Path(input1), new Path(input2));
+//    Job job = prepareJob(Step4_PartialMultiplyMapper.class, Text.class, Text.class, 
+//        Step4_AggregateReducer.class, Text.class, Text.class, 
+//        TextInputFormat.class, TextOutputFormat.class, conf,
+//        new Path(output), new Path(input1), new Path(input2));
+    
+    Job job = new Job(conf, "partialMultiply");
+    Configuration partialMultiplyConf = job.getConfiguration();
+
+    MultipleInputs.addInputPath(job, new Path(input1), 
+        TextInputFormat.class, Step4_SimilarityMatrixRowWrapperMapper.class);
+    MultipleInputs.addInputPath(job, new Path(input2),
+        TextInputFormat.class, Step4_UserVectorSplitterMapper.class);
+    job.setJarByClass(PartialMultiplyJob.class);
+    job.setMapOutputKeyClass(Text.class);
+    job.setMapOutputValueClass(Text.class);
+    job.setReducerClass(Step4_AggregateReducer.class);
+    job.setOutputFormatClass(TextOutputFormat.class);
+    job.setOutputKeyClass(Text.class);
+    job.setOutputValueClass(Text.class);
+    partialMultiplyConf.setBoolean("mapred.compress.map.output", true);
+    partialMultiplyConf.set("mapred.output.dir", output);
 
     job.waitForCompletion(true);
   }

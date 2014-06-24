@@ -23,8 +23,8 @@ public class RecommendMain {
     path.put("Step3Input", path.get("Step1Output"));
     path.put("Step3Output", path.get("Step1Input") + "/step3");
 
-    path.put("Step4Input1", path.get("Step3Output"));
-    path.put("Step4Input2", path.get("Step2Output"));
+    path.put("Step4Input1", path.get("Step2Output"));
+    path.put("Step4Input2", path.get("Step3Output"));
     path.put("Step4Output", path.get("Step1Input") + "/step4");
 
     path.put("Step5Input", path.get("Step4Output"));
