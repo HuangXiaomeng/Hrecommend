@@ -20,8 +20,9 @@ import org.armon.myhadoop.hdfs.HdfsDAO;
  *****************************************************************/
 public class CooccurrenceMatrixJob extends AbstractJob {
   
-  public CooccurrenceMatrixJob(Configuration conf) {
+  public CooccurrenceMatrixJob(Configuration conf, Map<String, String> path) throws Exception {
     super(conf);
+    job = initilizeJob(path);
   }
 
   public static class Step2_UserVectorToCooccurrenceMapper extends
@@ -60,7 +61,7 @@ public class CooccurrenceMatrixJob extends AbstractJob {
   }
   
   @Override
-  public void run(Map<String, String> path) throws Exception {
+  protected Job initilizeJob(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input = path.get("Step2Input");
@@ -74,7 +75,7 @@ public class CooccurrenceMatrixJob extends AbstractJob {
         TextInputFormat.class, TextOutputFormat.class, conf,
         new Path(output), new Path(input));
     
-    job.waitForCompletion(true);
+    return job;
     
 //    hdfs.cat(output + "/part-00000");
   }

@@ -19,8 +19,9 @@ import org.armon.myhadoop.hdfs.HdfsDAO;
  *****************************************************************/
 public class UserVectorJob extends AbstractJob {
   
-  public UserVectorJob(Configuration conf) {
+  public UserVectorJob(Configuration conf, Map<String, String> path) throws Exception {
     super(conf);
+    job = initilizeJob(path);
   }
 
   public static class Step1_ToItemPreMapper extends
@@ -55,7 +56,7 @@ public class UserVectorJob extends AbstractJob {
   }
 
   @Override
-  public void run(Map<String, String> path) throws Exception {
+  protected Job initilizeJob(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input = path.get("Step1Input");
@@ -72,7 +73,7 @@ public class UserVectorJob extends AbstractJob {
         TextInputFormat.class, TextOutputFormat.class, conf,
         new Path(output), new Path(input));
     
-    job.waitForCompletion(true);
+    return job;
     
 //    hdfs.cat(output + "/part-00000");
   }

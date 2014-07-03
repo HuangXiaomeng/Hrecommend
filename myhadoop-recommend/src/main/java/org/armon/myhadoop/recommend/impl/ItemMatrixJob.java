@@ -19,8 +19,9 @@ import org.armon.myhadoop.hdfs.HdfsDAO;
  *****************************************************************/
 public class ItemMatrixJob extends AbstractJob {
   
-  public ItemMatrixJob(Configuration conf) {
+  public ItemMatrixJob(Configuration conf, Map<String, String> path) throws Exception {
     super(conf);
+    job = initilizeJob(path);
   }
 
   public static class Step3_UserVectorSplitterMapper extends
@@ -45,7 +46,7 @@ public class ItemMatrixJob extends AbstractJob {
   }
 
   @Override
-  public void run(Map<String, String> path) throws Exception {
+  protected Job initilizeJob(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input = path.get("Step3Input");
@@ -58,6 +59,6 @@ public class ItemMatrixJob extends AbstractJob {
         TextInputFormat.class, TextOutputFormat.class, conf,
         new Path(output), new Path(input));
     
-    job.waitForCompletion(true);
+    return job;
   }
 }

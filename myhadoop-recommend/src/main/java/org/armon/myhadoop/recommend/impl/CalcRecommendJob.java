@@ -21,8 +21,9 @@ import org.armon.myhadoop.hdfs.HdfsDAO;
  *****************************************************************/
 public class CalcRecommendJob extends AbstractJob {
   
-  public CalcRecommendJob(Configuration conf) {
+  public CalcRecommendJob(Configuration conf, Map<String, String> path) throws Exception {
     super(conf);
+    job = initilizeJob(path);
   }
 
   public static class Step5_RecommendMapper extends
@@ -70,7 +71,8 @@ public class CalcRecommendJob extends AbstractJob {
     }
   }
 
-  public void run(Map<String, String> path) throws Exception {
+  @Override
+  protected Job initilizeJob(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input = path.get("Step5Input");
@@ -84,6 +86,6 @@ public class CalcRecommendJob extends AbstractJob {
         TextInputFormat.class, TextOutputFormat.class, conf,
         new Path(output), new Path(input));
 
-    job.waitForCompletion(true);
+    return job;
   }
 }

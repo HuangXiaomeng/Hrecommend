@@ -1,9 +1,15 @@
 package org.armon.myhadoop.recommend;
 
-import java.util.Map;
+import java.io.IOException;
 
 public interface MyJob {
   
-  public void run(Map<String, String> path) throws Exception;
+  public boolean completeJob() throws Exception;
+  
+  public void threadCompleteJob() throws Exception;
+  
+  public void waitJobComplete() throws IOException ;
+  
+  public String getName();
   
 }

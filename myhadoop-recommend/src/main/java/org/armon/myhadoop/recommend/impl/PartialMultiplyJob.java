@@ -12,7 +12,6 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.MultipleInputs;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
@@ -23,8 +22,9 @@ import org.armon.myhadoop.hdfs.HdfsDAO;
  *****************************************************************/
 public class PartialMultiplyJob extends AbstractJob {
   
-  public PartialMultiplyJob(Configuration conf) {
+  public PartialMultiplyJob(Configuration conf, Map<String, String> path) throws Exception {
     super(conf);
+    job = initilizeJob(path);
   }
   
   public static class Step4_SimilarityMatrixRowWrapperMapper extends 
@@ -116,7 +116,8 @@ public class PartialMultiplyJob extends AbstractJob {
     }
   }
 
-  public void run(Map<String, String> path) throws Exception {
+  @Override
+  protected Job initilizeJob(Map<String, String> path) throws Exception {
     Configuration conf = getConf();
 
     String input1 = path.get("Step4Input1");
@@ -134,6 +135,6 @@ public class PartialMultiplyJob extends AbstractJob {
     MultipleInputs.addInputPath(job, new Path(input2),
         TextInputFormat.class, Step4_UserVectorSplitterMapper.class);
 
-    job.waitForCompletion(true);
+    return job;
   }
 }

@@ -32,24 +32,28 @@ public class RecommendMain {
     
     Configuration conf = myHaoopUtil.getConf();
     // step 1
-    MyJob job1 = new UserVectorJob(myHaoopUtil.makeConfCopy(conf));
-    job1.run(path);
+    MyJob myjob1 = new UserVectorJob(myHaoopUtil.makeConfCopy(conf), path);
+    myjob1.completeJob();
     
     // step 2
-    MyJob job2 = new CooccurrenceMatrixJob(myHaoopUtil.makeConfCopy(conf));
-    job2.run(path);
+    MyJob myjob2 = new CooccurrenceMatrixJob(myHaoopUtil.makeConfCopy(conf), path);
+    myjob2.threadCompleteJob();
+    Thread.sleep(1000);
     
     // step 3
-    MyJob job3 = new ItemMatrixJob(myHaoopUtil.makeConfCopy(conf));
-    job3.run(path);
+    MyJob myjob3 = new ItemMatrixJob(myHaoopUtil.makeConfCopy(conf), path);
+    myjob3.threadCompleteJob();
     
     // step 4
-    MyJob job4 = new PartialMultiplyJob(myHaoopUtil.makeConfCopy(conf));
-    job4.run(path);
+    myjob2.waitJobComplete();
+    myjob3.waitJobComplete();
+    
+    MyJob myjob4 = new PartialMultiplyJob(myHaoopUtil.makeConfCopy(conf), path);
+    myjob4.completeJob();
     
     // step 5
-    MyJob job5 = new CalcRecommendJob(myHaoopUtil.makeConfCopy(conf));
-    job5.run(path);
+    MyJob myjob5 = new CalcRecommendJob(myHaoopUtil.makeConfCopy(conf), path);
+    myjob5.completeJob();
     
     System.out.println("recommend finish!");
     System.exit(0);
